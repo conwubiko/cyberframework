@@ -1,0 +1,15 @@
+<html>
+<body style="font-family: Arial, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 20px;">
+<div style="max-width: 500px; margin: 0 auto; background: #16213e; border-radius: 8px; padding: 30px;">
+    <h2 style="color: #00BCD4;">CROF Scan {{ 'Completed' if scan.status == 'completed' else 'Failed' }}</h2>
+    <p>Hi {{ user.username }},</p>
+    <p>Your scan has finished with status: <strong>{{ scan.status }}</strong></p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 5px; color: #8b949e;">Target:</td><td style="padding: 5px;">{{ scan.target }}</td></tr>
+        <tr><td style="padding: 5px; color: #8b949e;">Type:</td><td style="padding: 5px;">{{ scan.scan_type }}</td></tr>
+        <tr><td style="padding: 5px; color: #8b949e;">Findings:</td><td style="padding: 5px;">{{ scan.findings.count() }}</td></tr>
+    </table>
+    <p style="color: #8b949e; font-size: 12px;">This is an automated notification from CROF.</p>
+</div>
+</body>
+</html>

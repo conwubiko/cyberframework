@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Scan Results{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-radar"></i> Scan: {{ scan.target }}</h4>
+        <span class="text-secondary">Type: {{ scan.scan_type }} | Created: {{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    </div>
+    <div>
+        <span class="badge bg-{{ 'success' if scan.status == 'completed' else 'danger' if scan.status == 'failed' else 'warning' if scan.status == 'running' else 'secondary' }}" style="font-size: 1rem;" id="statusBadge">
+            {{ scan.status }}
+        </span>
+        {% if scan.status == 'completed' %}
+        <a href="{{ url_for('export.scan_csv', scan_id=scan.id) }}" class="btn btn-outline-secondary btn-sm ms-2">
+            <i class="bi bi-filetype-csv"></i> CSV
+        </a>
+        <a href="{{ url_for('export.scan_excel', scan_id=scan.id) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Progress -->
+<div class="card-dark mb-4" id="progressCard" {% if scan.status in ['completed', 'failed'] %}style="display:none;"{% endif %}>
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-secondary">Scan Progress</span>
+            <span id="progressPct">{{ scan.progress }}%</span>
+        </div>
+        <div class="progress" style="height: 20px; background: var(--bg-secondary);">
+            <div class="progress-bar" id="progressBar" style="width: {{ scan.progress }}%; background: var(--accent);"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Findings Summary -->
+{% set crit = findings|selectattr('severity', 'equalto', 'critical')|list|length %}
+{% set high = findings|selectattr('severity', 'equalto', 'high')|list|length %}
+{% set med = findings|selectattr('severity', 'equalto', 'medium')|list|length %}
+{% set low = findings|selectattr('severity', 'equalto', 'low')|list|length %}
+{% set info = findings|selectattr('severity', 'equalto', 'info')|list|length %}
+
+<div class="row g-3 mb-4">
+    <div class="col"><div class="stat-card"><div class="stat-value" style="color: #f85149;">{{ crit }}</div><div class="stat-label">Critical</div></div></div>
+    <div class="col"><div class="stat-card"><div class="stat-value" style="color: #da3633;">{{ high }}</div><div class="stat-label">High</div></div></div>
+    <div class="col"><div class="stat-card"><div class="stat-value" style="color: #d29922;">{{ med }}</div><div class="stat-label">Medium</div></div></div>
+    <div class="col"><div class="stat-card"><div class="stat-value" style="color: #2ea043;">{{ low }}</div><div class="stat-label">Low</div></div></div>
+    <div class="col"><div class="stat-card"><div class="stat-value" style="color: #58a6ff;">{{ info }}</div><div class="stat-label">Info</div></div></div>
+</div>
+
+<!-- Findings Table -->
+<div class="card-dark">
+    <div class="card-header"><i class="bi bi-exclamation-triangle"></i> Findings ({{ findings|length }})</div>
+    <div class="card-body p-0" id="findingsBody">
+        {% if findings %}
+        <table class="table table-dark-custom mb-0" style="font-size: 0.9rem;">
+            <thead><tr><th>Severity</th><th>Control</th><th>Title</th><th>Description</th><th>Remediation</th></tr></thead>
+            <tbody>
+            {% for f in findings %}
+            <tr>
+                <td><span class="badge badge-severity-{{ f.severity }}">{{ f.severity|upper }}</span></td>
+                <td><code>{{ f.control_id or '—' }}</code></td>
+                <td>{{ f.title }}</td>
+                <td class="text-secondary">{{ f.description }}</td>
+                <td class="text-secondary">{{ f.remediation }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-secondary p-3 mb-0">{% if scan.status == 'running' %}Scan in progress...{% else %}No findings.{% endif %}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if scan.status in ['pending', 'running'] %}
+<script>
+(function poll() {
+    fetch('{{ url_for("scanner.scan_status", scan_id=scan.id) }}')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('progressPct').textContent = data.progress + '%';
+            document.getElementById('progressBar').style.width = data.progress + '%';
+            if (data.status === 'completed' || data.status === 'failed') {
+                document.getElementById('statusBadge').textContent = data.status;
+                document.getElementById('statusBadge').className = 'badge bg-' + (data.status === 'completed' ? 'success' : 'danger');
+                document.getElementById('progressCard').style.display = 'none';
+                location.reload();
+            } else {
+                setTimeout(poll, 2000);
+            }
+        })
+        .catch(() => setTimeout(poll, 5000));
+})();
+</script>
+{% endif %}
+{% endblock %}

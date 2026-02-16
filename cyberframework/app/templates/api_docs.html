@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}API Docs{% endblock %}
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-braces"></i> CROF REST API</h4>
+
+<div class="card-dark mb-3">
+    <div class="card-header">Authentication</div>
+    <div class="card-body">
+        <p class="text-secondary">All API endpoints (except <code>/api/v1/framework</code>) require a JWT bearer token.</p>
+        <h6 style="color: var(--accent);">POST /api/v1/token</h6>
+        <pre style="color: var(--text-secondary); font-size: 0.85rem;">Request:
+{
+  "email": "user@example.com",
+  "password": "your_password"
+}
+
+Response:
+{
+  "token": "eyJ...",
+  "expires": "2026-02-15T12:00:00+00:00"
+}
+
+Usage:
+Authorization: Bearer eyJ...</pre>
+    </div>
+</div>
+
+<div class="card-dark mb-3">
+    <div class="card-header">Endpoints</div>
+    <div class="card-body p-0">
+        <table class="table table-dark-custom mb-0">
+            <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/framework</code></td><td>None</td><td>CROF framework structure (8 functions, 49 controls)</td></tr>
+                <tr><td><span class="badge bg-warning">POST</span></td><td><code>/api/v1/token</code></td><td>None</td><td>Obtain JWT token</td></tr>
+                <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/assessments</code></td><td>JWT</td><td>List user's assessments</td></tr>
+                <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/assessments/:id</code></td><td>JWT</td><td>Full assessment with scores</td></tr>
+                <tr><td><span class="badge bg-success">GET</span></td><td><code>/api/v1/assessments/:id/scores</code></td><td>Session</td><td>Assessment scores (for dashboard charts)</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

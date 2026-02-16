@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Advisory — {{ assessment.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-lightbulb"></i> Advisory: {{ assessment.title }}</h4>
+        <span class="text-secondary">Score: {{ advisory.results.overall_score }}% — {{ advisory.results.maturity_level }}</span>
+    </div>
+    <a href="{{ url_for('advisory.index') }}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value">{{ advisory.total_gaps }}</div>
+            <div class="stat-label">Total Gaps</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--danger);">{{ advisory.critical_gaps }}</div>
+            <div class="stat-label">Critical Gaps</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-value" style="color: var(--warning);">{{ advisory.high_gaps }}</div>
+            <div class="stat-label">High Gaps</div>
+        </div>
+    </div>
+</div>
+
+<!-- Remediation Roadmap -->
+<h5 class="mb-3" style="color: var(--accent);">Remediation Roadmap</h5>
+{% for phase in roadmap %}
+<div class="card-dark mb-3">
+    <div class="card-header d-flex justify-content-between">
+        <span>Phase {{ phase.phase_number }}: {{ phase.function_name }} ({{ phase.function_id }})</span>
+        <span class="badge bg-danger">Gap Score: {{ phase.total_gap }}</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-dark-custom mb-0" style="font-size: 0.9rem;">
+            <thead><tr><th>Control</th><th>Title</th><th>Priority</th><th>Current</th><th>Guidance</th></tr></thead>
+            <tbody>
+            {% for item in phase.items %}
+            <tr>
+                <td><code>{{ item.control_id }}</code></td>
+                <td>{{ item.title }}</td>
+                <td>
+                    <span class="badge bg-{{ 'danger' if item.priority == 'Critical' else 'warning' if item.priority == 'High' else 'info' }}">
+                        {{ item.priority }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-{{ 'warning' if item.current_answer == 'partial' else 'danger' }}">
+                        {{ item.current_answer|upper }}
+                    </span>
+                </td>
+                <td class="text-secondary" style="font-size: 0.85rem;">{{ item.guidance }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+{% if not roadmap %}
+<div class="card-dark">
+    <div class="card-body text-center py-4" style="color: var(--success);">
+        <i class="bi bi-check-circle" style="font-size: 3rem;"></i>
+        <p class="mt-2">Excellent! No gaps identified. All controls are fully implemented.</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- All Recommendations -->
+<h5 class="mb-3 mt-4" style="color: var(--accent);">All Recommendations ({{ advisory.total_gaps }})</h5>
+<div class="card-dark">
+    <div class="card-body p-0">
+        <table class="table table-dark-custom mb-0" style="font-size: 0.9rem;">
+            <thead><tr><th>Priority</th><th>Control</th><th>Function</th><th>Title</th><th>Current</th><th>Weight</th></tr></thead>
+            <tbody>
+            {% for rec in advisory.recommendations %}
+            <tr>
+                <td>
+                    <span class="badge bg-{{ 'danger' if rec.priority == 'Critical' else 'warning' if rec.priority == 'High' else 'info' }}">
+                        {{ rec.priority }}
+                    </span>
+                </td>
+                <td><code>{{ rec.control_id }}</code></td>
+                <td>{{ rec.function_name }}</td>
+                <td>{{ rec.title }}</td>
+                <td>
+                    <span class="badge bg-{{ 'warning' if rec.current_answer == 'partial' else 'danger' }}">
+                        {{ rec.current_answer|upper }}
+                    </span>
+                </td>
+                <td>{{ rec.weight }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

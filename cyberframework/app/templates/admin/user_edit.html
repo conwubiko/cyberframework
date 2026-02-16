@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Edit User{% endblock %}
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-person-gear"></i> Edit User: {{ user.username }}</h4>
+
+<div class="card-dark" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label text-secondary">Email</label>
+                <input type="text" class="form-control bg-dark text-light border-secondary" value="{{ user.email }}" disabled>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary">Role</label>
+                <select name="role" class="form-select bg-dark text-light border-secondary">
+                    <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                    <option value="auditor" {% if user.role == 'auditor' %}selected{% endif %}>Auditor</option>
+                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary">Organisation (text)</label>
+                <input type="text" name="organisation" class="form-control bg-dark text-light border-secondary"
+                       value="{{ user.organisation }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary">Organisation (linked)</label>
+                <select name="organisation_id" class="form-select bg-dark text-light border-secondary">
+                    <option value="">— None —</option>
+                    {% for org in orgs %}
+                    <option value="{{ org.id }}" {% if user.organisation_id == org.id %}selected{% endif %}>{{ org.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3 form-check form-switch">
+                <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
+                       {% if user.is_active %}checked{% endif %}>
+                <label class="form-check-label text-secondary" for="isActive">Account Active</label>
+            </div>
+            <button type="submit" class="btn btn-accent">Save Changes</button>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

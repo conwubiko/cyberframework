@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Generate Report{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <h4 class="mb-4"><i class="bi bi-file-earmark-pdf"></i> Generate Report</h4>
+        <div class="card-dark">
+            <div class="card-body">
+                <p class="text-secondary">Generate a report for: <strong style="color: var(--accent);">{{ assessment.title }}</strong></p>
+                <p class="text-secondary">Score: {{ assessment.overall_score }}% — {{ assessment.maturity_level }}</p>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary">Report Format</label>
+                        <select name="format" class="form-select form-select-dark">
+                            <option value="pdf">PDF</option>
+                            <option value="html">HTML</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-accent w-100">
+                        <i class="bi bi-gear"></i> Generate Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

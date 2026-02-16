@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Scans{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0"><i class="bi bi-radar"></i> Automated Scans</h4>
+    <a href="{{ url_for('scanner.new_scan') }}" class="btn btn-accent">
+        <i class="bi bi-plus-lg"></i> New Scan
+    </a>
+</div>
+
+{% if scans %}
+<div class="card-dark">
+    <div class="card-body p-0">
+        <table class="table table-dark-custom mb-0">
+            <thead><tr><th>Target</th><th>Type</th><th>Status</th><th>Progress</th><th>Findings</th><th>Created</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for s in scans %}
+            <tr>
+                <td>{{ s.target }}</td>
+                <td>{{ s.scan_type }}</td>
+                <td>
+                    <span class="badge bg-{{ 'success' if s.status == 'completed' else 'danger' if s.status == 'failed' else 'warning' if s.status == 'running' else 'secondary' }}">
+                        {{ s.status }}
+                    </span>
+                </td>
+                <td>
+                    <div class="progress-dark" style="width: 100px;">
+                        <div class="progress-bar" style="width: {{ s.progress }}%;"></div>
+                    </div>
+                </td>
+                <td>{{ s.findings.count() }}</td>
+                <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <a href="{{ url_for('scanner.view_scan', scan_id=s.id) }}" class="btn btn-sm btn-outline-accent">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card-dark">
+    <div class="card-body text-center text-secondary py-5">
+        <i class="bi bi-radar" style="font-size: 3rem;"></i>
+        <p class="mt-2">No scans yet. Run your first automated infrastructure scan.</p>
+        <a href="{{ url_for('scanner.new_scan') }}" class="btn btn-accent">Start Scan</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

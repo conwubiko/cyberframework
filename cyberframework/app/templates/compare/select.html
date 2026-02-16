@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Compare Assessments{% endblock %}
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-arrow-left-right"></i> Compare Assessments</h4>
+
+{% if assessments|length < 2 %}
+<div class="card-dark">
+    <div class="card-body text-secondary">
+        You need at least two completed assessments to compare. Complete more assessments first.
+    </div>
+</div>
+{% else %}
+<div class="card-dark" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="GET" id="compareForm">
+            <div class="mb-3">
+                <label class="form-label text-secondary">Assessment A (baseline)</label>
+                <select id="selectA" class="form-select bg-dark text-light border-secondary" required>
+                    <option value="">Select assessment...</option>
+                    {% for a in assessments %}
+                    <option value="{{ a.id }}">{{ a.title }} ({{ a.overall_score }}% — {{ a.completed_at.strftime('%Y-%m-%d') if a.completed_at else '' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label text-secondary">Assessment B (current)</label>
+                <select id="selectB" class="form-select bg-dark text-light border-secondary" required>
+                    <option value="">Select assessment...</option>
+                    {% for a in assessments %}
+                    <option value="{{ a.id }}">{{ a.title }} ({{ a.overall_score }}% — {{ a.completed_at.strftime('%Y-%m-%d') if a.completed_at else '' }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-accent">Compare</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('compareForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const a = document.getElementById('selectA').value;
+    const b = document.getElementById('selectB').value;
+    if (a && b && a !== b) {
+        window.location.href = '{{ url_for("compare.select") }}' + a + '/' + b;
+    } else if (a === b) {
+        alert('Please select two different assessments.');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Assessment — {{ function.name }}{% endblock %}
+{% block content %}
+<h4 class="mb-3">{{ assessment.title }}</h4>
+
+<!-- Wizard Steps -->
+<div class="wizard-steps">
+    {% for f in all_functions %}
+    <div class="wizard-step {% if loop.index0 == step %}active{% elif loop.index0 < step %}completed{% endif %}"
+         {% if loop.index0 < step %}onclick="location.href='{{ url_for('assessment.wizard', assessment_id=assessment.id, step=loop.index0) }}'"{% endif %}>
+        {{ f.name }}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card-dark">
+    <div class="card-header">
+        <i class="bi bi-{{ 'search' if function.id == 'ID' else 'shield-lock' if function.id == 'CT' else 'diagram-3' if function.id == 'MP' else 'journal-text' if function.id == 'PL' else 'book' if function.id == 'PB' else 'graph-up' if function.id == 'MT' else 'bug' if function.id == 'TS' else 'arrow-up-circle' }}"></i>
+        Function {{ step + 1 }}/{{ total_steps }}: {{ function.name }}
+        <small class="text-secondary ms-2">— {{ function.description }}</small>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% for ctrl in function.controls %}
+            <div class="card-dark mb-3 p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <strong style="color: var(--accent);">{{ ctrl.id }}</strong> — {{ ctrl.title }}
+                        <span class="badge bg-secondary ms-1">Weight: {{ ctrl.weight }}</span>
+                    </div>
+                </div>
+                <p class="text-secondary mb-3" style="font-size: 0.95rem;">{{ ctrl.question }}</p>
+
+                <div class="mb-2">
+                    {% set current_answer = existing.get(ctrl.id, {}).get('answer', '') %}
+                    {% for val, label in [('yes', 'Yes'), ('partial', 'Partial'), ('no', 'No'), ('na', 'N/A')] %}
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="answer_{{ ctrl.id }}"
+                               id="{{ ctrl.id }}_{{ val }}" value="{{ val }}"
+                               {{ 'checked' if current_answer == val else '' }}>
+                        <label class="form-check-label" for="{{ ctrl.id }}_{{ val }}">{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-2">
+                    <input type="text" name="evidence_{{ ctrl.id }}" class="form-control form-control-dark form-control-sm"
+                           placeholder="Evidence / notes (optional)"
+                           value="{{ existing.get(ctrl.id, {}).get('evidence_notes', '') }}">
+                </div>
+
+                <details class="mt-2">
+                    <summary class="text-secondary" style="font-size: 0.85rem; cursor: pointer;">Guidance</summary>
+                    <p class="text-secondary mt-1" style="font-size: 0.85rem;">{{ ctrl.guidance }}</p>
+                </details>
+            </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between mt-4">
+                {% if step > 0 %}
+                <a href="{{ url_for('assessment.wizard', assessment_id=assessment.id, step=step - 1) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Previous
+                </a>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-accent">
+                    {% if step + 1 < total_steps %}
+                    Save &amp; Next <i class="bi bi-arrow-right"></i>
+                    {% else %}
+                    Complete Assessment <i class="bi bi-check-lg"></i>
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

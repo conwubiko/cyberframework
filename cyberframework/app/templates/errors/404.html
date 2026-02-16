@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}404{% endblock %}
+{% block content %}
+<div class="text-center mt-5">
+    <h1 class="display-1" style="color: var(--accent);">404</h1>
+    <p class="lead text-secondary">Page not found.</p>
+    <a href="{{ url_for('dashboard.index') if current_user.is_authenticated else url_for('auth.login') }}" class="btn btn-accent mt-3">Go Home</a>
+</div>
+{% endblock %}

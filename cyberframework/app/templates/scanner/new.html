@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}New Scan{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <h4 class="mb-4"><i class="bi bi-radar"></i> New Automated Scan</h4>
+        <div class="card-dark">
+            <div class="card-body">
+                <p class="text-secondary">Run an automated scan against your infrastructure to identify recovery gaps.</p>
+
+                <div class="card-dark p-3 mb-3">
+                    <h6 style="color: var(--accent);">Scan Modules</h6>
+                    <ul class="text-secondary mb-0" style="font-size: 0.9rem;">
+                        {% for m in modules %}
+                        <li>{{ m.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary">Target</label>
+                        <input type="text" name="target" class="form-control form-control-dark"
+                               value="localhost" placeholder="hostname or IP">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-secondary">Scan Type</label>
+                        <select name="scan_type" class="form-select form-select-dark">
+                            <option value="full">Full Scan (all modules)</option>
+                            <option value="quick">Quick Scan (backup + access only)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-accent w-100">
+                        <i class="bi bi-play-fill"></i> Start Scan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}New Assessment{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <h4 class="mb-4"><i class="bi bi-clipboard-plus"></i> New Questionnaire Assessment</h4>
+        <div class="card-dark">
+            <div class="card-body">
+                <p class="text-secondary">
+                    This assessment will walk you through the 8 CROF functions with ~49 controls.
+                    Answer each question to evaluate your organisation's cyber recovery posture.
+                </p>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary">Assessment Title</label>
+                        <input type="text" name="title" class="form-control form-control-dark"
+                               placeholder="e.g. Q1 2026 Recovery Assessment">
+                    </div>
+                    <button type="submit" class="btn btn-accent w-100">
+                        <i class="bi bi-play-fill"></i> Begin Assessment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

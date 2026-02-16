@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Backup Job{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-cloud-upload"></i> {{ job.target_name }}</h4>
+        <span class="text-secondary">Provider: {{ job.provider }} | Created: {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    </div>
+    <span class="badge bg-{{ 'success' if job.status == 'completed' else 'danger' if job.status == 'failed' else 'warning' if job.status == 'running' else 'secondary' }}" style="font-size: 1rem;" id="statusBadge">
+        {{ job.status }}
+    </span>
+</div>
+
+<!-- Progress -->
+<div class="card-dark mb-4" id="progressCard" {% if job.status in ['completed', 'failed'] %}style="display:none;"{% endif %}>
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-secondary">Progress</span>
+            <span id="progressPct">{{ job.progress }}%</span>
+        </div>
+        <div class="progress" style="height: 20px; background: var(--bg-secondary);">
+            <div class="progress-bar" id="progressBar" style="width: {{ job.progress }}%; background: var(--accent);"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Details -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" style="font-size: 1.2rem;">{{ job.provider }}</div><div class="stat-label">Provider</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value">{{ job.progress }}%</div><div class="stat-label">Progress</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" style="font-size: 1rem;">{{ job.started_at.strftime('%H:%M:%S') if job.started_at else '—' }}</div><div class="stat-label">Started</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" style="font-size: 1rem;">{{ job.completed_at.strftime('%H:%M:%S') if job.completed_at else '—' }}</div><div class="stat-label">Completed</div></div></div>
+</div>
+
+{% if job.log %}
+<div class="card-dark">
+    <div class="card-header"><i class="bi bi-terminal"></i> Job Log</div>
+    <div class="card-body">
+        <pre style="color: var(--text-secondary); font-size: 0.85rem; white-space: pre-wrap; margin: 0;">{{ job.log }}</pre>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if job.status in ['pending', 'running'] %}
+<script>
+(function poll() {
+    fetch('{{ url_for("backup.job_status", job_id=job.id) }}')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('progressPct').textContent = data.progress + '%';
+            document.getElementById('progressBar').style.width = data.progress + '%';
+            if (data.status === 'completed' || data.status === 'failed') {
+                location.reload();
+            } else {
+                setTimeout(poll, 2000);
+            }
+        })
+        .catch(() => setTimeout(poll, 5000));
+})();
+</script>
+{% endif %}
+{% endblock %}

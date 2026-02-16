@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-logo">
+        <h1><i class="bi bi-shield-check"></i> CROF</h1>
+        <p class="text-secondary">Cyber Recovery Operational Framework</p>
+    </div>
+    <div class="card-dark">
+        <div class="card-header text-center">Sign In</div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Email</label>
+                    <input type="email" name="email" class="form-control form-control-dark" required autofocus
+                           value="{{ request.form.get('email', '') }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">Password</label>
+                    <input type="password" name="password" class="form-control form-control-dark" required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                    <label class="form-check-label text-secondary" for="remember">Remember me</label>
+                </div>
+                <button type="submit" class="btn btn-accent w-100">Login</button>
+            </form>
+            <p class="text-center mt-3 text-secondary">
+                No account? <a href="{{ url_for('auth.register') }}" style="color: var(--accent);">Register</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

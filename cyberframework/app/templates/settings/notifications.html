@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Notification Preferences{% endblock %}
+{% block content %}
+<h4 class="mb-4"><i class="bi bi-bell"></i> Notification Preferences</h4>
+
+<div class="card-dark" style="max-width: 600px;">
+    <div class="card-body">
+        <form method="POST">
+            {% for event_type, label in event_types %}
+            <div class="form-check form-switch mb-3">
+                <input type="checkbox" name="{{ event_type }}" class="form-check-input"
+                       id="pref_{{ event_type }}"
+                       {% if prefs.get(event_type, True) %}checked{% endif %}>
+                <label class="form-check-label text-secondary" for="pref_{{ event_type }}">
+                    {{ label }} — receive email when this event occurs
+                </label>
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-accent">Save Preferences</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

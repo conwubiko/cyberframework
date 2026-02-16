@@ -1,0 +1,15 @@
+<html>
+<body style="font-family: Arial, sans-serif; background: #1a1a2e; color: #e0e0e0; padding: 20px;">
+<div style="max-width: 500px; margin: 0 auto; background: #16213e; border-radius: 8px; padding: 30px;">
+    <h2 style="color: #00BCD4;">CROF Assessment Completed</h2>
+    <p>Hi {{ user.username }},</p>
+    <p>Your assessment has been completed.</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <tr><td style="padding: 5px; color: #8b949e;">Title:</td><td style="padding: 5px;">{{ assessment.title }}</td></tr>
+        <tr><td style="padding: 5px; color: #8b949e;">Score:</td><td style="padding: 5px;">{{ assessment.overall_score }}%</td></tr>
+        <tr><td style="padding: 5px; color: #8b949e;">Maturity:</td><td style="padding: 5px;">{{ assessment.maturity_level }}</td></tr>
+    </table>
+    <p style="color: #8b949e; font-size: 12px;">This is an automated notification from CROF.</p>
+</div>
+</body>
+</html>
