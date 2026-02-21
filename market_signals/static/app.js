@@ -252,6 +252,7 @@ async function fetchStatus(isManual = false) {
 
     renderVix(data.vix || {});
     renderFG(data.fear_greed || {});
+    renderRSI(data.capitulation || {});
     renderCapitulation(data.capitulation || {});
 
     setText('#last-checked', `Last checked: ${new Date(data.checked_at).toLocaleTimeString()}`);
