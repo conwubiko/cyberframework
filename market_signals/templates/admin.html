@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Market Signals</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    /* ── Admin-specific extras ─────────────────────────────────────── */
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+    .nav-tab {
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid transparent;
+      border-bottom: none;
+      transition: color .15s, background .15s;
+    }
+    .nav-tab:hover { color: var(--text-primary); background: var(--bg-card-alt); }
+    .nav-tab.active {
+      color: var(--text-primary);
+      background: var(--bg-card);
+      border-color: var(--border);
+    }
+
+    .recipient-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .recipient-table th {
+      background: var(--bg-card-alt);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .recipient-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .recipient-table tr:last-child td { border-bottom: none; }
+    .recipient-table tr:hover td { background: rgba(255,255,255,.025); }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 20px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--green); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+    .add-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+    .add-form .form-group { margin: 0; flex: 1; min-width: 160px; }
+    .add-form .form-group label { margin-bottom: 5px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .empty-state .icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+    .btn-icon {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: color .15s, border-color .15s;
+    }
+    .btn-icon:hover { color: var(--red); border-color: var(--red); }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="container header-inner">
+    <div class="brand">
+      <span class="icon">📡</span>
+      <h1>Market Signals — Admin</h1>
+    </div>
+    <div class="header-meta">
+      <a href="/" class="btn btn-outline">&#8592; Dashboard</a>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<main>
+  <div class="container">
+
+    <!-- Status Banner -->
+    <div id="status-banner"></div>
+
+    <!-- ── Nav tabs ──────────────────────────────────────────────────── -->
+    <div class="nav-tabs">
+      <a href="#" class="nav-tab active" data-tab="recipients">Email Recipients</a>
+      <a href="#" class="nav-tab" data-tab="settings">Thresholds &amp; Settings</a>
+    </div>
+
+    <!-- ══ TAB: Email Recipients ════════════════════════════════════════ -->
+    <div id="tab-recipients">
+
+      <div class="section-title">Email Recipients
+        <span id="recipient-count" style="color:var(--text-muted);font-weight:400;font-size:0.82rem;margin-left:8px"></span>
+      </div>
+      <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:20px">
+        All active recipients receive every alert email. At least one active recipient
+        (or <code style="background:var(--bg-card-alt);padding:1px 5px;border-radius:3px">ALERT_EMAIL</code>
+        in <code style="background:var(--bg-card-alt);padding:1px 5px;border-radius:3px">.env</code>)
+        is required for notifications to be sent.
+      </p>
+
+      <!-- Add form -->
+      <div class="settings-panel" style="margin-bottom:20px">
+        <div class="panel-title">Add Recipient</div>
+        <div class="add-form">
+          <div class="form-group">
+            <label for="new-name">Name</label>
+            <input type="text" id="new-name" placeholder="Jane Doe" />
+          </div>
+          <div class="form-group">
+            <label for="new-email">Email Address</label>
+            <input type="email" id="new-email" placeholder="jane@example.com" />
+          </div>
+          <button class="btn btn-green" id="add-btn" style="flex-shrink:0;height:38px">
+            &#43; Add
+          </button>
+        </div>
+      </div>
+
+      <!-- Recipients table -->
+      <div class="history-panel">
+        <table class="recipient-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Active</th>
+              <th>Added</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="recipients-tbody">
+            <tr><td colspan="6" class="empty-state">
+              <span class="spinner"></span> Loading…
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /tab-recipients -->
+
+    <!-- ══ TAB: Settings ════════════════════════════════════════════════ -->
+    <div id="tab-settings" style="display:none">
+      <div class="section-title">Alert Thresholds &amp; Settings</div>
+      <div class="settings-panel">
+        <div class="settings-grid">
+          <div class="form-group">
+            <label for="cfg-vix">VIX Threshold (alert if &gt;)</label>
+            <input type="number" id="cfg-vix" step="0.5" min="0" placeholder="30" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-fg">Fear &amp; Greed (alert if &lt;)</label>
+            <input type="number" id="cfg-fg" step="1" min="0" max="100" placeholder="12" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-rsi">SPY RSI (alert if &lt;)</label>
+            <input type="number" id="cfg-rsi" step="1" min="0" max="100" placeholder="30" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-cap">Capitulation Score (alert if ≥)</label>
+            <input type="number" id="cfg-cap" step="5" min="0" max="100" placeholder="50" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-cooldown">Alert Cooldown (hours)</label>
+            <input type="number" id="cfg-cooldown" step="1" min="0" placeholder="4" />
+          </div>
+          <div class="form-group">
+            <label for="cfg-interval">Check Interval (minutes)</label>
+            <input type="number" id="cfg-interval" step="1" min="1" placeholder="15" />
+          </div>
+        </div>
+        <button class="btn btn-green" id="save-cfg-btn">&#10003; Save Settings</button>
+      </div>
+    </div><!-- /tab-settings -->
+
+  </div><!-- /container -->
+</main>
+
+<script src="/static/app.js"></script>
+<script src="/static/admin.js"></script>
+</body>
+</html>

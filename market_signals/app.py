@@ -12,7 +12,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from config import Config
-from models import db, AlertHistory, AlertCooldown
+from models import db, AlertHistory, AlertCooldown, AlertRecipient
 from notifications.sms import send_sms
 from notifications.email_alert import send_email, build_alert_email, build_test_email
 
@@ -130,19 +130,77 @@ def create_app(config_class=Config) -> Flask:
                     pass
         return jsonify({"ok": True, "updated": updated})
 
+    @app.route("/admin")
+    def admin():
+        return render_template("admin.html")
+
+    # ── Recipient CRUD ────────────────────────────────────────────────────
+
+    @app.route("/api/recipients", methods=["GET"])
+    def api_recipients_list():
+        recipients = AlertRecipient.query.order_by(AlertRecipient.id).all()
+        return jsonify({"ok": True, "data": [r.to_dict() for r in recipients]})
+
+    @app.route("/api/recipients", methods=["POST"])
+    def api_recipients_add():
+        payload = request.get_json(force=True, silent=True) or {}
+        name  = (payload.get("name") or "").strip()
+        email = (payload.get("email") or "").strip().lower()
+
+        if not name or not email or "@" not in email:
+            return jsonify({"ok": False, "error": "Valid name and email required"}), 400
+
+        if AlertRecipient.query.filter_by(email=email).first():
+            return jsonify({"ok": False, "error": "Email already exists"}), 409
+
+        recipient = AlertRecipient(name=name, email=email, active=True)
+        db.session.add(recipient)
+        db.session.commit()
+        return jsonify({"ok": True, "data": recipient.to_dict()}), 201
+
+    @app.route("/api/recipients/<int:rid>", methods=["DELETE"])
+    def api_recipients_delete(rid):
+        recipient = db.session.get(AlertRecipient, rid)
+        if not recipient:
+            return jsonify({"ok": False, "error": "Recipient not found"}), 404
+        db.session.delete(recipient)
+        db.session.commit()
+        return jsonify({"ok": True})
+
+    @app.route("/api/recipients/<int:rid>", methods=["PATCH"])
+    def api_recipients_update(rid):
+        recipient = db.session.get(AlertRecipient, rid)
+        if not recipient:
+            return jsonify({"ok": False, "error": "Recipient not found"}), 404
+
+        payload = request.get_json(force=True, silent=True) or {}
+        if "active" in payload:
+            recipient.active = bool(payload["active"])
+        if "name" in payload and payload["name"].strip():
+            recipient.name = payload["name"].strip()
+        db.session.commit()
+        return jsonify({"ok": True, "data": recipient.to_dict()})
+
     @app.route("/api/test-notification", methods=["POST"])
     def api_test_notification():
         sms_msg = "\U0001f6a8 MARKET ALERT TEST: Your SMS notifications are working correctly."
         subject, html = build_test_email()
 
-        sms_ok = send_sms(sms_msg, app.config)
-        email_ok = send_email(subject, html, app.config)
+        # Collect active DB recipients; fall back to config ALERT_EMAIL if none
+        db_recipients = [
+            r.email
+            for r in AlertRecipient.query.filter_by(active=True).order_by(AlertRecipient.id).all()
+        ]
+
+        sms_ok   = send_sms(sms_msg, app.config)
+        email_ok = send_email(subject, html, app.config, recipients=db_recipients or None)
 
         return jsonify(
             {
                 "ok": True,
                 "sms_sent": sms_ok,
                 "email_sent": email_ok,
+                "recipients_count": len(db_recipients),
             }
         )
 

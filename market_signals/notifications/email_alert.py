@@ -14,32 +14,56 @@ def _get(config, key: str, default: str = "") -> str:
         return getattr(config, key, default)
 
 
-def send_email(subject: str, html_body: str, config) -> bool:
-    """Send an HTML alert email via Gmail SMTP SSL. Returns True on success."""
+def send_email(
+    subject: str,
+    html_body: str,
+    config,
+    recipients: list[str] | None = None,
+) -> bool:
+    """
+    Send an HTML alert email via Gmail SMTP SSL.
+
+    If `recipients` is provided (list of email strings), sends to all of them
+    in a single SMTP session. Otherwise falls back to ALERT_EMAIL in config.
+    Returns True if at least one message was sent.
+    """
     gmail_user     = _get(config, "GMAIL_USER")
     gmail_password = _get(config, "GMAIL_APP_PASSWORD")
-    recipient      = _get(config, "ALERT_EMAIL")
+    fallback       = _get(config, "ALERT_EMAIL")
 
-    if not all([gmail_user, gmail_password, recipient]):
+    if not all([gmail_user, gmail_password]):
         logger.warning("Gmail credentials incomplete — email not sent")
         return False
 
-    try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = gmail_user
-        msg["To"] = recipient
-        msg.attach(MIMEText(html_body, "html"))
+    # Build recipient list — deduplicate while preserving order
+    to_list = list(dict.fromkeys(recipients)) if recipients else []
+    if not to_list and fallback:
+        to_list = [fallback]
 
+    if not to_list:
+        logger.warning("No email recipients configured — email not sent")
+        return False
+
+    sent_any = False
+    try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(gmail_user, gmail_password)
-            server.sendmail(gmail_user, recipient, msg.as_string())
+            for address in to_list:
+                try:
+                    msg = MIMEMultipart("alternative")
+                    msg["Subject"] = subject
+                    msg["From"] = gmail_user
+                    msg["To"] = address
+                    msg.attach(MIMEText(html_body, "html"))
+                    server.sendmail(gmail_user, address, msg.as_string())
+                    logger.info("Email sent to %s: %s", address, subject)
+                    sent_any = True
+                except Exception:
+                    logger.exception("Failed to send email to %s", address)
+    except Exception:
+        logger.exception("Failed to connect to Gmail SMTP")
 
-        logger.info("Email sent to %s: %s", recipient, subject)
-        return True
-    except Exception as exc:
-        logger.exception("Failed to send email")
-        return False
+    return sent_any
 
 
 def build_alert_email(alert_type: str, status: dict) -> tuple[str, str]:

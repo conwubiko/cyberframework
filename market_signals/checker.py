@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 
 from flask import current_app
 
-from models import db, AlertHistory, AlertCooldown
+from models import db, AlertHistory, AlertCooldown, AlertRecipient
 from signals.vix import get_vix_data
 from signals.fear_greed import get_fear_greed
 from signals.capitulation import get_capitulation_signals
@@ -51,12 +51,22 @@ def _log_alert(alert_type: str, value: float, message: str, notified: bool) -> N
     db.session.commit()
 
 
+def _active_recipient_emails() -> list[str]:
+    """Return email addresses of all active DB recipients."""
+    return [
+        r.email
+        for r in AlertRecipient.query.filter_by(active=True).order_by(AlertRecipient.id).all()
+    ]
+
+
 def _send_notifications(alert_type: str, value: float, threshold: float, status: dict, config) -> bool:
     sms_msg = build_sms_message(alert_type, value, threshold)
     subject, html = build_alert_email(alert_type, status)
 
+    recipients = _active_recipient_emails()
     sms_ok = send_sms(sms_msg, config)
-    email_ok = send_email(subject, html, config)
+    # Pass DB recipients; send_email falls back to ALERT_EMAIL if list is empty
+    email_ok = send_email(subject, html, config, recipients=recipients or None)
     return sms_ok or email_ok
 
 
