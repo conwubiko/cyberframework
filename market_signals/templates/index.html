@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Signals Monitor</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────────── -->
+<header>
+  <div class="container header-inner">
+    <div class="brand">
+      <span class="icon">📡</span>
+      <h1>Market Signals Monitor</h1>
+    </div>
+    <div class="header-meta">
+      <span class="last-checked" id="last-checked">Connecting…</span>
+      <button class="btn btn-primary" id="check-btn">&#128269; Check Now</button>
+      <button class="btn btn-red" id="test-btn">&#128276; Send Test Alert</button>
+    </div>
+  </div>
+</header>
+
+<!-- ── Main ───────────────────────────────────────────────────────────── -->
+<main>
+  <div class="container">
+
+    <!-- Status Banner -->
+    <div id="status-banner"></div>
+
+    <!-- ── Metric Cards ─────────────────────────────────────────────── -->
+    <div class="metric-grid">
+
+      <!-- VIX -->
+      <div class="metric-card" id="vix-card">
+        <div class="metric-label">VIX · Volatility Index</div>
+        <div id="vix-value">
+          <span class="metric-value">—</span>
+        </div>
+        <div class="metric-sub" id="vix-sub">
+          <span style="color:var(--text-muted)">Loading…</span>
+        </div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:0%"></div></div>
+      </div>
+
+      <!-- Fear & Greed -->
+      <div class="metric-card" id="fg-card">
+        <div class="metric-label">CNN Fear &amp; Greed Index</div>
+        <div id="fg-value">
+          <span class="metric-value">—</span>
+        </div>
+        <div class="metric-sub" id="fg-sub">
+          <span style="color:var(--text-muted)">Loading…</span>
+        </div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:0%"></div></div>
+      </div>
+
+      <!-- RSI -->
+      <div class="metric-card" id="rsi-card">
+        <div class="metric-label">SPY RSI (14)</div>
+        <div id="rsi-value">
+          <span class="metric-value">—</span>
+        </div>
+        <div class="metric-sub" id="rsi-sub">
+          <span style="color:var(--text-muted)">Loading…</span>
+        </div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:0%"></div></div>
+      </div>
+
+    </div><!-- /metric-grid -->
+
+    <!-- ── Capitulation Panel ────────────────────────────────────────── -->
+    <div class="cap-panel" id="cap-panel">
+      <div class="panel-title">Composite Capitulation Score</div>
+      <div class="score-row">
+        <div id="cap-score">
+          <span class="score-big">—</span>
+        </div>
+        <div>
+          <p style="color:var(--text-muted);font-size:.82rem;max-width:380px">
+            Score ≥ 50 triggers a capitulation alert.
+            Components: RSI&lt;30 (+30), 1-day drop&gt;3% (+20),
+            5-day drop&gt;7% (+25), VIX spike&gt;20% (+25).
+          </p>
+        </div>
+      </div>
+      <div class="gauge-bar" style="margin-bottom:16px">
+        <div class="gauge-fill" style="width:0%"></div>
+      </div>
+      <ul class="signal-list" id="cap-signals">
+        <li class="signal-item"><span class="dot"></span>Loading signals…</li>
+      </ul>
+    </div>
+
+    <!-- ── Alert History ─────────────────────────────────────────────── -->
+    <div class="section-title">Alert History</div>
+    <div class="history-panel">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Message</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="alerts-tbody">
+          <tr><td colspan="5" class="no-alerts">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Settings ──────────────────────────────────────────────────── -->
+    <div class="section-title">Alert Thresholds &amp; Settings</div>
+    <div class="settings-panel">
+      <div class="settings-grid">
+        <div class="form-group">
+          <label for="cfg-vix">VIX Threshold (alert if &gt;)</label>
+          <input type="number" id="cfg-vix" step="0.5" min="0" placeholder="30" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-fg">Fear &amp; Greed (alert if &lt;)</label>
+          <input type="number" id="cfg-fg" step="1" min="0" max="100" placeholder="12" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-rsi">SPY RSI (alert if &lt;)</label>
+          <input type="number" id="cfg-rsi" step="1" min="0" max="100" placeholder="30" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-cap">Capitulation Score (alert if ≥)</label>
+          <input type="number" id="cfg-cap" step="5" min="0" max="100" placeholder="50" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-cooldown">Alert Cooldown (hours)</label>
+          <input type="number" id="cfg-cooldown" step="1" min="0" placeholder="4" />
+        </div>
+        <div class="form-group">
+          <label for="cfg-interval">Check Interval (minutes)</label>
+          <input type="number" id="cfg-interval" step="1" min="1" placeholder="15" />
+        </div>
+      </div>
+      <button class="btn btn-green" id="save-cfg-btn">&#10003; Save Settings</button>
+    </div>
+
+  </div><!-- /container -->
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
